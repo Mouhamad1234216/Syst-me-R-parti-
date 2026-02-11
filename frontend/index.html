@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Frontend - Projet Système Réparti</title>
+    <style>body{font-family:Arial;margin:20px}</style>
+  </head>
+  <body>
+    <h1>Frontend — Demo</h1>
+    <div id="users">Chargement des utilisateurs...</div>
+
+    <script>
+      async function load(){
+        try{
+          const r = await fetch('/api/users');
+          const data = await r.json();
+          document.getElementById('users').innerHTML = '<ul>' + data.map(u => '<li>'+u.name+'</li>').join('') + '</ul>';
+        }catch(e){
+          document.getElementById('users').textContent = 'Erreur: ' + e.message;
+        }
+      }
+      load();
+    </script>
+  </body>
+</html>

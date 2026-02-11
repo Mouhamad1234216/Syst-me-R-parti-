@@ -1,0 +1,6 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Placeholder - ensure Docker installed
+      ansible.builtin.debug:
+        msg: "Add tasks to install Docker, Kubernetes tools, and Jenkins here"
