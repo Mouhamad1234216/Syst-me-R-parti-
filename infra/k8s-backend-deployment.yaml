@@ -17,3 +17,9 @@ spec:
           image: Mouhdev/backend:latest
           ports:
             - containerPort: 5000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: database_url
