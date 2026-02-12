@@ -32,9 +32,20 @@ def get_products():
     return jsonify([{'id':p.id,'name':p.name} for p in products])
 
 if __name__ == '__main__':
-    # Create tables if not exists (safe for demo)
-    try:
-        db.create_all()
-    except Exception:
-        pass
+    # Wait for the database to be ready then create tables (useful for docker-compose)
+    import time
+
+    max_retries = 20
+    for attempt in range(max_retries):
+        try:
+            with app.app_context():
+                db.create_all()
+            print('Database ready and tables created')
+            break
+        except Exception as e:
+            print(f'Database not ready (attempt {attempt+1}/{max_retries}): {e}')
+            time.sleep(2)
+    else:
+        print('Could not initialize database after retries; starting app anyway')
+
     app.run(host='0.0.0.0', port=5000)
