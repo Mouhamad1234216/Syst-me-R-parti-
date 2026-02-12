@@ -1,6 +1,206 @@
+---
 - hosts: all
   become: yes
+  vars:
+    docker_packages:
+      - docker.io
+      - docker-compose
+    k8s_tools:
+      - curl
+      - wget
+  
   tasks:
-    - name: Placeholder - ensure Docker installed
-      ansible.builtin.debug:
-        msg: "Add tasks to install Docker, Kubernetes tools, and Jenkins here"
+    # ============= SECTION 1: Install Docker & Docker Compose =============
+    - name: Update apt cache (Debian/Ubuntu)
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+      when: ansible_os_family == "Debian"
+
+    - name: Add Docker GPG key (Debian/Ubuntu)
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Add Docker APT repository (Debian/Ubuntu)
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker (Debian/Ubuntu)
+      apt:
+        name: docker-ce
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install docker-compose via pip
+      pip:
+        name: docker-compose
+        state: present
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    # ============= SECTION 2: Install kubectl =============
+    - name: Download kubectl
+      get_url:
+        url: "https://dl.k8s.io/release/{{ kubectl_version | default('v1.27.0') }}/bin/linux/amd64/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: '0755'
+
+    - name: Verify kubectl installation
+      command: kubectl version --client
+      register: kubectl_version_output
+      changed_when: false
+
+    - name: Display kubectl version
+      debug:
+        msg: "{{ kubectl_version_output.stdout }}"
+
+    # ============= SECTION 3: Install Minikube (optional, for local K8s) =============
+    - name: Download Minikube
+      get_url:
+        url: "https://github.com/kubernetes/minikube/releases/download/{{ minikube_version | default('v1.31.2') }}/minikube-linux-amd64"
+        dest: /usr/local/bin/minikube
+        mode: '0755'
+      ignore_errors: yes
+
+    - name: Verify Minikube installation
+      command: minikube version
+      register: minikube_version_output
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Display Minikube version
+      debug:
+        msg: "{{ minikube_version_output.stdout }}"
+      when: minikube_version_output.rc == 0
+
+    # ============= SECTION 4: Build Docker images =============
+    - name: Ensure project directory exists
+      file:
+        path: /opt/projet-systeme-repartie
+        state: directory
+
+    - name: Copy project files
+      copy:
+        src: "{{ playbook_dir }}/../"
+        dest: /opt/projet-systeme-repartie/
+        recurse: yes
+      ignore_errors: yes
+
+    - name: Build Docker images (backend)
+      command: docker build -t Mouhdev/backend:latest /opt/projet-systeme-repartie/backend
+      register: backend_build
+      changed_when: "'Successfully tagged' in backend_build.stdout"
+
+    - name: Build Docker images (frontend)
+      command: docker build -t Mouhdev/frontend:latest /opt/projet-systeme-repartie/frontend
+      register: frontend_build
+      changed_when: "'Successfully tagged' in frontend_build.stdout"
+
+    - name: Display Docker images
+      command: docker images | grep Mouhdev
+      register: docker_images_output
+      changed_when: false
+
+    - name: Show built images
+      debug:
+        msg: "{{ docker_images_output.stdout }}"
+
+    # ============= SECTION 5: Deploy K8s manifests =============
+    - name: Apply K8s Secret
+      command: kubectl apply -f /opt/projet-systeme-repartie/infra/k8s-db-secret.yaml
+      register: secret_output
+      changed_when: "'created' in secret_output.stdout"
+
+    - name: Apply K8s PersistentVolumeClaim
+      command: kubectl apply -f /opt/projet-systeme-repartie/infra/k8s-postgres-pvc.yaml
+      register: pvc_output
+      changed_when: "'created' in pvc_output.stdout"
+
+    - name: Apply K8s Postgres Deployment
+      command: kubectl apply -f /opt/projet-systeme-repartie/infra/k8s-postgres-deployment.yaml
+      register: pg_deploy_output
+      changed_when: "'created' in pg_deploy_output.stdout"
+
+    - name: Apply K8s Postgres Service
+      command: kubectl apply -f /opt/projet-systeme-repartie/infra/k8s-postgres-service.yaml
+      register: pg_svc_output
+      changed_when: "'created' in pg_svc_output.stdout"
+
+    - name: Apply K8s Backend Deployment
+      command: kubectl apply -f /opt/projet-systeme-repartie/infra/k8s-backend-deployment.yaml
+      register: backend_deploy_output
+      changed_when: "'created' in backend_deploy_output.stdout"
+
+    - name: Apply K8s Backend Service
+      command: kubectl apply -f /opt/projet-systeme-repartie/infra/k8s-backend-service.yaml
+      register: backend_svc_output
+      changed_when: "'created' in backend_svc_output.stdout"
+
+    - name: Apply K8s Frontend Deployment
+      command: kubectl apply -f /opt/projet-systeme-repartie/infra/k8s-frontend-deployment.yaml
+      register: frontend_deploy_output
+      changed_when: "'created' in frontend_deploy_output.stdout"
+
+    - name: Apply K8s Frontend Service
+      command: kubectl apply -f /opt/projet-systeme-repartie/infra/k8s-frontend-service.yaml
+      register: frontend_svc_output
+      changed_when: "'created' in frontend_svc_output.stdout"
+
+    - name: Apply K8s Ingress
+      command: kubectl apply -f /opt/projet-systeme-repartie/infra/k8s-ingress.yaml
+      register: ingress_output
+      changed_when: "'created' in ingress_output.stdout"
+
+    # ============= SECTION 6: Verify deployment =============
+    - name: Wait for deployments to be ready (5m timeout)
+      command: kubectl rollout status deployment/{{ item }} --timeout=5m
+      loop:
+        - postgres
+        - backend
+        - frontend
+      register: rollout_status
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Check pod status
+      command: kubectl get pods
+      register: pods_output
+      changed_when: false
+
+    - name: Display pod status
+      debug:
+        msg: "{{ pods_output.stdout }}"
+
+    - name: Check services
+      command: kubectl get svc
+      register: svc_output
+      changed_when: false
+
+    - name: Display services
+      debug:
+        msg: "{{ svc_output.stdout }}"
+
+  handlers:
+    - name: Restart Docker
+      systemd:
+        name: docker
+        state: restarted
