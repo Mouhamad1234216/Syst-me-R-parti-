@@ -1,0 +1,60 @@
+Projet : Système Réparti 
+Déploiement d’une Application Web Répartie avec Docker, Kubernetes, Ansible et 
+Jenkins 
+I. 
+Objectifs pédagogiques 
+À travers ce projet, vous devez démontrer votre capacité à : 
+• Concevoir une architecture de microservices avec des technologies modernes, 
+• Conteneuriser une application à l’aide de Docker, 
+• Déployer l'application sur un cluster Kubernetes, 
+• Automatiser l’installation d’une infrastructure avec Ansible, 
+• Mettre en place un pipeline CI/CD complet avec Jenkins. 
+II. 
+Contexte du projet 
+Une startup technologique souhaite déployer une plateforme web composée de trois services : 
+1. Un frontend développé avec React ou Angular, 
+2. Une API backend développée avec Django (ou Flask), 
+3. Une base de données PostgreSQL. 
+L’entreprise exige un déploiement automatisé, maintenable, et conforme aux bonnes pratiques 
+DevOps. 
+III. 
+Travail demandé 
+Vous devez réaliser les tâches suivantes : 
+1. Conception 
+• Présentez un schéma de l’architecture cible. 
+• Expliquez les choix techniques (langages, base de données, communication entre 
+services...). 
+2. Développement 
+• Créez un frontend simple avec une page d’accueil affichant des données issues de 
+l’API. 
+• Créez une API REST en Django ou Flask avec au moins deux modèles (ex : 
+Utilisateur, Produit). 
+• Connectez le backend à une base PostgreSQL. 
+3. Conteneurisation 
+• Rédigez des Dockerfiles pour le frontend et le backend. 
+• Créez un docker-compose.yml pour tester localement. 
+4. Déploiement Kubernetes 
+• Écrivez les manifests Kubernetes : 
+o Déploiements (Deployment) 
+o Services (Service) 
+o Volumes (PersistentVolumeClaim) pour PostgreSQL 
+• Utilisez un cluster Kubernetes local (Minikube ou kubeadm). 
+5. Automatisation avec Ansible 
+• Écrivez un playbook Ansible pour : 
+o Installer Docker, Kubernetes, Jenkins, 
+o Déployer l’application automatiquement sur le cluster. 
+6. CI/CD avec Jenkins 
+• Installez Jenkins (via Ansible ou Docker). 
+• Créez un Jenkinsfile avec les étapes suivantes : 
+o Linting et tests 
+o Build des images Docker 
+o Push vers Docker Hub 
+o Déploiement automatique sur Kubernetes 
+IV. Livrables à remettre 
+1. Lien vers le dépôt Git du projet 
+2. Archive ZIP complète du projet 
+3. Document PDF de synthèse (10 pages max) contenant : 
+o Introduction du projet 
+o Architecture et technologies 
+o Screenshots ou logs de déploiement 
+o Pipeline CI/CD 

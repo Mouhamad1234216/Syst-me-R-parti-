@@ -98,17 +98,18 @@
         path: /opt/projet-systeme-repartie
         state: directory
 
-    - name: Copy project files
+    - name: Copy infra directory
       copy:
-        src: "{{ playbook_dir }}/../"
-        dest: /opt/projet-systeme-repartie/
-        recurse: yes
-      ignore_errors: yes
+        src: "{{ playbook_dir }}/../infra/"
+        dest: /opt/projet-systeme-repartie/infra/
+        mode: 0755
+
 
     - name: Build Docker images (backend)
       command: docker build -t Mouhdev/backend:latest /opt/projet-systeme-repartie/backend
       register: backend_build
-      changed_when: "'Successfully tagged' in backend_build.stdout"
+      changed_when: "'created' in backend_build.stdout or 'configured' in backend_build.stdout"
+
 
     - name: Build Docker images (frontend)
       command: docker build -t Mouhdev/frontend:latest /opt/projet-systeme-repartie/frontend
@@ -124,11 +125,19 @@
       debug:
         msg: "{{ docker_images_output.stdout }}"
 
+    - name: Start Minikube
+      command: minikube start --driver=docker
+      register: minikube_start
+      changed_when: "'Done!' in minikube_start.stdout"
+      ignore_errors: yes
+
+
     # ============= SECTION 5: Deploy K8s manifests =============
-    - name: Apply K8s Secret
-      command: kubectl apply -f /opt/projet-systeme-repartie/infra/k8s-db-secret.yaml
-      register: secret_output
-      changed_when: "'created' in secret_output.stdout"
+    - name: Apply all Kubernetes manifests
+      command: kubectl apply -f /opt/projet-systeme-repartie/infra/
+      register: k8s_apply_output
+      changed_when: "'created' in k8s_apply_output.stdout or 'configured' in k8s_apply_output.stdout"
+
 
     - name: Apply K8s PersistentVolumeClaim
       command: kubectl apply -f /opt/projet-systeme-repartie/infra/k8s-postgres-pvc.yaml
