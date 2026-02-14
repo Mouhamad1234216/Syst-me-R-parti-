@@ -1,67 +1,154 @@
-# Ansible Configuration for Projet Système Réparti
+Projet Système Réparti — Déploiement Web avec Docker, Kubernetes, Ansible et Jenkins
+1. Description
 
-## Overview
-Ce playbook Ansible automatise l'installation et le déploiement de l'application sur une machine ou un cluster Kubernetes.
+Ce projet consiste à déployer une application web répartie composée de :
 
-## Sections du playbook
+Frontend : Angular/React servie via Nginx
 
-### 1. Installation Docker & Docker Compose
-- Ajoute les dépôts et GPG keys Docker
-- Installe Docker CE et docker-compose via pip
-- Démarre et active le service Docker
+Backend : API REST Flask connectée à PostgreSQL
 
-### 2. Installation kubectl
-- Télécharge kubectl (v1.27.0 par défaut)
-- Vérifie l'installation
+Base de données : PostgreSQL
 
-### 3. Installation Minikube (optionnel)
-- Pour clusters Kubernetes locaux
-- Télécharge Minikube et vérifie l'installation
+Infrastructure : Conteneurisation Docker, orchestration Kubernetes, automatisation Ansible et pipeline CI/CD Jenkins
 
-### 4. Construction des images Docker
-- Copie les fichiers du projet dans `/opt/projet-systeme-repartie`
-- Construit les images `Mouhdev/backend:latest` et `Mouhdev/frontend:latest`
+Objectif pédagogique : démontrer la maîtrise des technologies DevOps modernes pour déployer une application microservices.
 
-### 5. Déploiement des manifests Kubernetes
-- Applique Secret K8s (`k8s-db-secret.yaml`)
-- Applique PVC pour PostgreSQL (`k8s-postgres-pvc.yaml`)
-- Déploie PostgreSQL, backend, frontend et leurs services
-- Applique l'Ingress pour accès HTTP
+2. Arborescence du projet
+ProjetSystemRepartie/
+├── ansible/
+│   ├── inventory.ini
+│   └── playbook.yml
+├── backend/
+│   ├── app.py
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── seed.py
+├── frontend/
+│   ├── index.html
+│   ├── Dockerfile
+│   └── default.conf
+├── infra/
+│   ├── k8s-backend-deployment.yaml
+│   ├── k8s-backend-service.yaml
+│   ├── k8s-frontend-deployment.yaml
+│   ├── k8s-frontend-service.yaml
+│   ├── k8s-db-secret.yaml
+│   ├── k8s-ingress.yaml
+│   ├── k8s-postgres-deployment.yaml
+│   ├── k8s-postgres-service.yaml
+│   └── k8s-postgres-pvc.yaml
+├── docker-compose.yml
+├── Jenkinsfile
+├── REPORT.md
+└── README.md
 
-### 6. Vérification du déploiement
-- Attente des déploiements (rollout status)
-- Affichage de l'état des pods et services
+3. Prérequis
 
-## Utilisation
+Docker et Docker Compose
 
-### Sur une machine locale (Linux/Ubuntu)
-```bash
+Kubernetes / Minikube (local) ou cluster distant
+
+Ansible 2.12+ et Python
+
+Accès root ou sudo sur la machine cible
+
+4. Déploiement avec Ansible
+
+Le playbook Ansible automatise :
+
+Installation Docker et Docker Compose
+
+Installation kubectl
+
+Installation Minikube (optionnel pour local)
+
+Construction des images Docker (backend et frontend)
+
+Déploiement des manifests Kubernetes (Secrets, PVC, Deployments, Services, Ingress)
+
+Vérification du déploiement (pods et services)
+
+Commandes
+
+Sur une machine locale (Linux/Ubuntu) :
+
 cd ansible/
 ansible-playbook -i inventory.ini playbook.yml
-```
 
-### Sur une machine distante via SSH
-1. Édite `inventory.ini` et ajoute l'IP/hostname :
-```ini
+
+Sur une machine distante via SSH :
+
+Modifier inventory.ini pour ajouter l’IP du cluster :
+
 [kubernetes_cluster]
 192.168.1.100 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa
-```
 
-2. Exécute :
-```bash
+
+Lancer le playbook :
+
 ansible-playbook -i inventory.ini playbook.yml
-```
 
-### Variables personnalisables
-- `kubectl_version` : version kubectl à installer (défaut: v1.27.0)
-- `minikube_version` : version Minikube (défaut: v1.31.2)
+5. Vérification
 
-## Prérequis
-- Machine cible : Debian/Ubuntu
-- Accès root ou sudo
-- Python + Ansible installés localement
+Vérifier que les pods sont en Running :
 
-## Prochaines étapes
-- Compléter le déploiement Jenkins pour la CI/CD
-- Configurer les secrets en production (ne pas utiliser `stringData`)
-- Mettre en place les configurations de réplication PostgreSQL
+kubectl get pods
+
+
+Vérifier les services exposés :
+
+kubectl get svc
+
+
+Accéder au frontend via Minikube :
+
+minikube service frontend-service
+
+
+Tester l’API backend via le frontend /api/*
+
+6. Construction et tests locaux avec Docker Compose
+
+Build et lancement :
+
+docker-compose build
+docker-compose up -d
+
+
+Vérifier les services :
+
+docker-compose ps
+
+
+Tester les endpoints API :
+
+curl http://localhost:5000/api/users
+curl http://localhost:8080/api/users
+
+7. Variables personnalisables
+
+kubectl_version : version kubectl à installer (défaut v1.27.0)
+
+minikube_version : version Minikube (défaut v1.31.2)
+
+8. Bonnes pratiques
+
+Minikube utilise son propre Docker interne, utiliser eval $(minikube docker-env) si nécessaire
+
+Ne jamais exposer directement les secrets en production
+
+Backend protégé derrière le frontend pour plus de sécurité
+
+Préparer la réplication PostgreSQL pour la production
+
+9. CI/CD (Jenkins)
+
+Pipeline défini dans Jenkinsfile : linting, tests, build Docker, push sur Docker Hub, déploiement K8s
+
+Jenkins peut être installé via Ansible ou Docker
+
+10. Contact
+
+Auteur : [Ton nom]
+
+Email : [Ton email]

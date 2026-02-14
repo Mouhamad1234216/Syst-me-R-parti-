@@ -1,7 +1,5 @@
 # Plan de travail — Projet Système Réparti
 
-Ce document contient le plan de travail que nous suivrons étape par étape.
-
 ## TODOs principaux
 
 1. Explorer le dépôt
@@ -17,10 +15,7 @@ Ce document contient le plan de travail que nous suivrons étape par étape.
 6. Revue et documentation
    - Documenter les changements, ajouter README et livrables.
 
-## Notes
 
-- J'indiquerai clairement chaque étape réalisée et les fichiers modifiés.
-- Pour pousser vers un dépôt distant (GitHub/GitLab), il faudra fournir l'URL du remote.
 
 ## Commandes Git recommandées (PowerShell)
 
@@ -29,11 +24,9 @@ cd C:\ProjetSystemRepartie
 git init -b main
 git add PLAN.md projet.txt
 git commit -m "Ajout du plan de travail (PLAN.md)"
-# Pour pousser vers un remote existant :
-# git remote add origin <url>
-# git push -u origin main
+
 ```
 
 ---
 
-Fait avec l'assistant — dis-moi si je dois ajouter ce fichier au remote maintenant.
+

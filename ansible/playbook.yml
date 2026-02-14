@@ -10,7 +10,7 @@
       - wget
   
   tasks:
-    # ============= SECTION 1: Install Docker & Docker Compose =============
+    
     - name: Update apt cache (Debian/Ubuntu)
       apt:
         update_cache: yes
@@ -57,7 +57,7 @@
         state: started
         enabled: yes
 
-    # ============= SECTION 2: Install kubectl =============
+    
     - name: Download kubectl
       get_url:
         url: "https://dl.k8s.io/release/{{ kubectl_version | default('v1.27.0') }}/bin/linux/amd64/kubectl"
@@ -73,7 +73,7 @@
       debug:
         msg: "{{ kubectl_version_output.stdout }}"
 
-    # ============= SECTION 3: Install Minikube (optional, for local K8s) =============
+    
     - name: Download Minikube
       get_url:
         url: "https://github.com/kubernetes/minikube/releases/download/{{ minikube_version | default('v1.31.2') }}/minikube-linux-amd64"
@@ -92,7 +92,7 @@
         msg: "{{ minikube_version_output.stdout }}"
       when: minikube_version_output.rc == 0
 
-    # ============= SECTION 4: Build Docker images =============
+    
     - name: Ensure project directory exists
       file:
         path: /opt/projet-systeme-repartie
@@ -132,7 +132,7 @@
       ignore_errors: yes
 
 
-    # ============= SECTION 5: Deploy K8s manifests =============
+    
     - name: Apply all Kubernetes manifests
       command: kubectl apply -f /opt/projet-systeme-repartie/infra/
       register: k8s_apply_output
@@ -179,7 +179,7 @@
       register: ingress_output
       changed_when: "'created' in ingress_output.stdout"
 
-    # ============= SECTION 6: Verify deployment =============
+    
     - name: Wait for deployments to be ready (5m timeout)
       command: kubectl rollout status deployment/{{ item }} --timeout=5m
       loop:

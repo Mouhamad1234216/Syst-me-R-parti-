@@ -1,25 +1,140 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Frontend - Projet Système Réparti</title>
-    <style>body{font-family:Arial;margin:20px}</style>
-  </head>
-  <body>
-    <h1>Frontend — Demo</h1>
-    <div id="users">Chargement des utilisateurs...</div>
-
-    <script>
-      async function load(){
-        try{
-          const r = await fetch('/api/users');
-          const data = await r.json();
-          document.getElementById('users').innerHTML = '<ul>' + data.map(u => '<li>'+u.name+'</li>').join('') + '</ul>';
-        }catch(e){
-          document.getElementById('users').textContent = 'Erreur: ' + e.message;
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Projet Système Réparti</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
         }
-      }
-      load();
-    </script>
-  </body>
+
+        header {
+            background-color: #1f2937;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        button {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #1e40af;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f3f4f6;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Application Web Répartie</h1>
+    <p>Frontend + Backend + PostgreSQL sur Kubernetes</p>
+</header>
+
+<div class="container">
+    <h2>Liste des Utilisateurs</h2>
+    <button onclick="loadUsers()">Charger les utilisateurs</button>
+    <div class="status" id="status"></div>
+    <table id="usersTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<footer>
+    Projet DevOps – Docker • Kubernetes • Ansible • Jenkins
+</footer>
+
+<script>
+async function loadUsers() {
+    const status = document.getElementById("status");
+    const table = document.getElementById("usersTable");
+    const tbody = table.querySelector("tbody");
+
+    status.textContent = "Connexion à l'API...";
+    table.style.display = "none";
+    tbody.innerHTML = "";
+
+    try {
+        const response = await fetch("/api/users");
+        const data = await response.json();
+
+        data.forEach(user => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${user.id}</td>
+                <td>${user.name}</td>
+                <td>${user.email}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        table.style.display = "table";
+        status.textContent = "API connectée avec succès ✔";
+        status.style.color = "green";
+
+    } catch (error) {
+        status.textContent = "Erreur de connexion à l'API ✖";
+        status.style.color = "red";
+    }
+}
+</script>
+
+</body>
 </html>

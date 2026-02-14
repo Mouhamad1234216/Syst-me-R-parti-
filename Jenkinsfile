@@ -2,14 +2,14 @@ pipeline {
   agent any
 
   environment {
-    // Docker registry credentials (configure in Jenkins: Manage Credentials)
+  
     DOCKER_REGISTRY = 'docker.io'
-    DOCKER_USERNAME = credentials('docker-username')  // Jenkins secret
-    DOCKER_PASSWORD = credentials('docker-password')  // Jenkins secret
-    REGISTRY_URL = 'Mouhdev'  // Docker Hub username
+    DOCKER_USERNAME = credentials('docker-username')  
+    DOCKER_PASSWORD = credentials('docker-password')  
+    REGISTRY_URL = 'Mouhdev'  
     
-    // Kubernetes configuration
-    KUBECONFIG = credentials('kubeconfig')  // Kubernetes config file (Jenkins secret)
+    
+    KUBECONFIG = credentials('kubeconfig')  
     K8S_NAMESPACE = 'default'
   }
 

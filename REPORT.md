@@ -1,165 +1,126 @@
+Projet Système Réparti — Déploiement Web avec Docker, Kubernetes, Ansible et Jenkins
 1. Introduction
 
-Objectif du projet : Déployer une application web répartie composée d’un frontend, d’une API backend et d’une base PostgreSQL, avec conteneurisation, orchestration Kubernetes, automatisation Ansible et pipeline CI/CD Jenkins.
+Objectif pédagogique : déployer une application web répartie avec microservices, conteneurisation et pipeline CI/CD
 
-Auteur :
+Contexte : startup avec frontend, backend et base PostgreSQL
 
-Date :
+Technologies : Flask, PostgreSQL, Nginx, Docker, Kubernetes, Ansible, Jenkins
 
-2. Énoncé (extrait)
+2. Architecture cible
 
-Déploiement d’une Application Web Répartie avec Docker, Kubernetes, Ansible et Jenkins
+Schéma architecture microservices :
 
-3. Travaux réalisés (résumé)
+Frontend (Nginx)
+       |
+       v
+   Backend API (Flask)
+       |
+       v
+  PostgreSQL Database
 
-Conception : schéma de l’architecture (à ajouter)
 
-Développement : frontend statique et API Flask avec modèles User et Product (backend/app.py)
+Capture à insérer : schéma graphique de l’architecture
 
-Conteneurisation : frontend/Dockerfile, backend/Dockerfile, docker-compose.yml
+3. Développement et Conteneurisation
 
-Orchestration local : tests via docker-compose (services db, backend, frontend)
+Frontend : Angular/React simple servie par Nginx
 
-Intégration frontend↔backend : Nginx proxy /api → backend (frontend/default.conf corrigé avec backend-service)
+Backend : Flask API avec modèles User et Product
 
-Seed de la DB : backend/seed.py insère des données d’exemple
+Dockerfiles et docker-compose.yml pour tests locaux
 
-Infrastructure K8s : manifests dans infra/ (Deployments + Services + PVC + Secret)
+Captures / logs :
+![alt text](Capture d'écran 2026-02-14 000625.png)
+![alt text](Capture d'écran 2026-02-14 000334.png)
+curl http://localhost:5000/api/users
 
-Automatisation : ansible/playbook.yml (ébauche)
+4. Déploiement Kubernetes (Minikube)
 
-CI/CD : Jenkinsfile (squelette)
+Secrets, PVC, Deployments, Services, Ingress
 
-4. Fichiers ajoutés / modifiés
+Commandes :
 
-PLAN.md, REPORT.md
-
-frontend/index.html, frontend/Dockerfile, frontend/default.conf
-
-backend/app.py, backend/Dockerfile, backend/requirements.txt, backend/seed.py
-
-docker-compose.yml
-
-infra/k8s-backend-deployment.yaml, infra/k8s-backend-service.yaml
-
-infra/k8s-frontend-deployment.yaml, infra/k8s-frontend-service.yaml
-
-infra/k8s-postgres-deployment.yaml, infra/k8s-postgres-service.yaml, infra/k8s-postgres-pvc.yaml, infra/k8s-db-secret.yaml
-
-infra/k8s-ingress.yaml
-
-ansible/playbook.yml, Jenkinsfile, .gitignore, README.md
-
-5. Commandes exécutées (preuves)
-Initialisation Git & push
-git init -b main
-git add .
-git commit -m "Initial scaffold"
-git remote add origin <repo_url>
-git push -u origin main
-
-Construction et lancement local (Docker Compose)
-docker-compose build
-docker-compose up --build -d
-docker-compose ps
-docker-compose logs --tail=50 backend
-
-Tester les endpoints localement
-Invoke-RestMethod http://localhost:5000/api/users
-Invoke-RestMethod http://localhost:8080
-Invoke-RestMethod http://localhost:8080/api/users
-
-6. Détails techniques et choix
-
-Backend : Flask + SQLAlchemy — simple et rapide à mettre en place
-
-Base de données : PostgreSQL — robuste et compatible Kubernetes
-
-Frontend : page statique servie par Nginx + proxy /api vers backend-service
-
-Conteneurisation : Dockerfiles séparés, orchestration locale via docker-compose
-
-Déploiement cible : Kubernetes (manifests fournis avec Services, PVC, Secret)
-
-7. Tests réalisés
-7.1 Pods Kubernetes
-
-Commande :
-
+kubectl apply -f infra/
+kubectl get nodes
 kubectl get pods
-
-
-Capture à insérer ici :
-
-NAME                        READY   STATUS    RESTARTS   AGE
-backend-6bb89c78f-ft6ng     1/1     Running   0          6m49s
-frontend-7f9589fbff-c8d9r   1/1     Running   0          31s
-postgres-7994c856-9dh86     1/1     Running   0          14m
-
-7.2 Services Kubernetes
-
-Commande :
-
 kubectl get svc
-
-
-Capture à insérer ici :
-
-NAME               TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
-backend-service    ClusterIP      10.104.155.142  <none>        5000/TCP       6m30s
-frontend-service   LoadBalancer   10.107.240.124  <pending>     80:31579/TCP   6m3s
-postgres-service   ClusterIP      10.96.41.96     <none>        5432/TCP       14m
-
-7.3 Frontend dans le navigateur
-
-Commande :
-
 minikube service frontend-service
 
 
-Capture à insérer ici :
+Captures : 
+![alt text](Capture d'écran 2026-02-14 001126.png)
+![alt text](Capture d'écran 2026-02-14 001332.png)
 
-Screenshot de la page frontend affichant les données récupérées via l’API backend
+Page frontend accessible via Minikube URL
+![alt text](Capture d'écran 2026-02-14 001422.png)
 
-7.4 Logs Backend
+5. Résolution problèmes / Notes techniques
+
+Nginx error: host not found in upstream "backend" → corrigé dans default.conf
+
+Vérification frontend pods : Running
+
+Capture :
+![alt text](image.png)
+
+kubectl logs frontend-xxx montrant frontend opérationnel
+
+6. Ansible Playbook
+
+Sections : Docker, kubectl, Minikube, build Docker, déploiement K8s, vérification
+
+Variables : kubectl_version, minikube_version
 
 Commande :
 
-kubectl logs backend-6bb89c78f-ft6ng
+ansible-playbook -i inventory.ini playbook.yml
 
 
-Capture / texte à insérer ici :
+7. CI/CD Jenkins
 
-Database ready and tables created
-* Running on http://0.0.0.0:5000
+Pipeline : lint, test, build Docker, push, deploy K8s
 
-7.5 Logs Frontend (optionnel)
+Jenkinsfile : orchestré avec les manifests K8s
 
-Commande :
+Captures :
+![alt text](Capture d'écran 2026-02-14 002448.png)
+![alt text](Capture d'écran 2026-02-14 002742.png)
 
-kubectl logs frontend-7f9589fbff-c8d9r
+Interface Jenkins avec pipeline vert / étapes exécutées
 
+8. Tests finaux
 
-Texte à insérer si besoin :
+Frontend : page web accessible avec données
 
-[Startup Nginx] Configuration complete; ready for start up
+Backend : /api/users retourne JSON
 
-8. Points restants (plans d'action)
+PostgreSQL : accessible via service
 
-Compléter playbook Ansible pour automatiser :
+Captures  :
 
-Installation Docker, Kubernetes, Minikube
+Page frontend finale
+![alt text](Capture d'écran 2026-02-14 003102.png)
 
-Déploiement des manifests K8s
+kubectl get pods final
+![alt text](Capture d’écran 2026-02-14 003204.png)
 
-Déploiement Jenkins
+kubectl get svc final
+![alt text](Capture d'écran 2026-02-14 003302.png)
 
-Compléter Jenkinsfile pour pipeline complet : lint → test → build → push → déploiement
+JSON de l’API
+![alt text](Capture d'écran 2026-02-14 003414.png)
 
-Générer PDF final ≤10 pages avec captures
+9. Conclusion
 
-9. Annexes
+Projet complet microservices conteneurisés avec déploiement automatisé
 
-Ajouter ici captures d’écran terminal et navigateur
+Points forts : automatisation Ansible, Kubernetes, CI/CD
 
-Ajouter logs backend / frontend complets si nécessaire pour preuve technique
+Prochaines étapes : réplication PostgreSQL, production-ready secrets
+
+10. Annexes
+
+Logs backend / frontend / PostgreSQL
+
+Commandes utilisées : kubectl, docker-compose, ansible-playbook
